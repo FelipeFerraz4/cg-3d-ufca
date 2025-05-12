@@ -12,7 +12,7 @@
 using namespace std;
 
 // Variáveis da câmera
-float camX = 100.0f, camY = 10.0f, camZ = 100.0f;
+float camX = 10.0f, camY = 10.0f, camZ = 10.0f;
 float dirX = -1.0f, dirY = 0.0f, dirZ = -1.0f;
 float angleX = 0.0f, angleY = 45.0f;
 int centerX, centerY;
@@ -334,7 +334,7 @@ void generateDisplayList() {
     
     glBegin(GL_TRIANGLES);
     Material* lastMaterial = nullptr;
-    
+    glColor3f(1.0f, 1.0f, 0.234f);
     for (const auto& face : faces) {
         const Vertex& v1 = vertices[face.v1];
         const Vertex& v2 = vertices[face.v2];
@@ -388,13 +388,13 @@ void init() {
     glutWarpPointer(centerX, centerY);
 
     glShadeModel(GL_SMOOTH);
-    glDisable(GL_COLOR_MATERIAL);
+   // glDisable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
     GLfloat lightAmbient[] = {0.2f, 0.2f, 0.2f, 1.0f};
     GLfloat lightDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
-    GLfloat lightSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     GLfloat lightPosition[] = {0.0f, 5.0f, 5.0f, 1.0f};
     
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
@@ -546,8 +546,11 @@ int main(int argc, char** argv) {
     glutInitWindowSize(1460, 720);
     glutInitWindowPosition(200, 0);
 
+
     if(!loadOBJ("teste.obj"))
         return 1;
+    //if(!loadOBJ("teste.obj"))
+      //  return 1;
 
     init();
     glutDisplayFunc(display);

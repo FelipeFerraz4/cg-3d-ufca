@@ -1,17 +1,16 @@
 #include <GL/freeglut.h>
-#include <algorithm>
-#include <iostream>
+#include <cmath>
+#include <vector>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <string>
-#include <vector>
-#include <cmath>
-#include <map>
+#include <algorithm>
 
 using namespace std;
 
 // Variáveis da câmera
-float camX = 70.0f, camY = 10.0f, camZ = 0.0f;
+float camX = 4.0f, camY = 2.0f, camZ = 4.0f;
 float dirX = -1.0f, dirY = 0.0f, dirZ = -1.0f;
 float angleX = 0.0f, angleY = 45.0f;
 int centerX, centerY;
@@ -29,74 +28,12 @@ struct Vertex {
     float x, y, z;
 };
 
-struct Material {
-    string name;
-    float ambient[3];
-    float diffuse[3];
-    float specular[3];
-    float shininess;
-    
-    Material() : shininess(0.0f) {
-        for(int i = 0; i < 3; i++) {
-            ambient[i] = 0.2f;
-            diffuse[i] = 0.8f;
-            specular[i] = 1.0f;
-        }
-    }
-};
-
 struct Face {
     int v1, v2, v3;
-    Material* material;
 };
 
 vector<Vertex> vertices;
 vector<Face> faces;
-map<string, Material> materials;
-Material defaultMaterial;
-Material* currentMaterial = &defaultMaterial;
-
-// Função para carregar o arquivo MTL
-bool loadMTL(const char* path) {
-    ifstream file(path);
-    if (!file.is_open()) {
-        cerr << "Erro ao abrir o arquivo MTL: " << path << endl;
-        return false;
-    }
-
-    string line;
-    Material* currentMat = nullptr;
-    
-    while (getline(file, line)) {
-        istringstream iss(line);
-        string type;
-        iss >> type;
-
-        if (type == "newmtl") {
-            string name;
-            iss >> name;
-            materials[name] = Material();
-            currentMat = &materials[name];
-            currentMat->name = name;
-        }
-        else if (type == "Ka" && currentMat) { // Ambient color
-            iss >> currentMat->ambient[0] >> currentMat->ambient[1] >> currentMat->ambient[2];
-        }
-        else if (type == "Kd" && currentMat) { // Diffuse color
-            iss >> currentMat->diffuse[0] >> currentMat->diffuse[1] >> currentMat->diffuse[2];
-        }
-        else if (type == "Ks" && currentMat) { // Specular color
-            iss >> currentMat->specular[0] >> currentMat->specular[1] >> currentMat->specular[2];
-        }
-        else if (type == "Ns" && currentMat) { // Shininess
-            iss >> currentMat->shininess;
-        }
-    }
-
-    file.close();
-    cout << "Material carregado com sucesso! Materiais: " << materials.size() << endl;
-    return true;
-}
 
 // Função para carregar o arquivo OBJ
 bool loadOBJ(const char* path) {
@@ -107,8 +44,6 @@ bool loadOBJ(const char* path) {
     }
 
     string line;
-    string mtlPath;
-    
     while (getline(file, line)) {
         istringstream iss(line);
         string type;
@@ -131,29 +66,7 @@ bool loadOBJ(const char* path) {
             
             // Ajusta para índices base 0
             f.v1--; f.v2--; f.v3--;
-            f.material = currentMaterial;
             faces.push_back(f);
-        }
-        else if (type == "mtllib") { // Arquivo de material
-            iss >> mtlPath;
-            // Assume que o arquivo MTL está no mesmo diretório do OBJ
-            size_t lastSlash = string(path).find_last_of("/\\");
-            if (lastSlash != string::npos) {
-                mtlPath = string(path).substr(0, lastSlash+1) + mtlPath;
-            }
-            if (!loadMTL(mtlPath.c_str())) {
-                cerr << "Aviso: Não foi possível carregar o arquivo MTL: " << mtlPath << endl;
-            }
-        }
-        else if (type == "usemtl") { // Usar material
-            string matName;
-            iss >> matName;
-            if (materials.find(matName) != materials.end()) {
-                currentMaterial = &materials[matName];
-            } else {
-                cerr << "Aviso: Material '" << matName << "' não encontrado" << endl;
-                currentMaterial = nullptr;
-            }
         }
     }
 
@@ -182,79 +95,17 @@ void updateCamera() {
 }
 
 // Função auxiliar para calcular a distância ponto-triângulo
-float clamp(float val, float minVal, float maxVal) {
-    return std::max(minVal, std::min(maxVal, val));
-}
-
-float pointToTriangleDistance(float px, float py, float pz, const Vertex& v0, const Vertex& v1, const Vertex& v2) {
-    // Vetores dos lados do triângulo
-    float v0x = v1.x - v0.x;
-    float v0y = v1.y - v0.y;
-    float v0z = v1.z - v0.z;
-
-    float v1x = v2.x - v0.x;
-    float v1y = v2.y - v0.y;
-    float v1z = v2.z - v0.z;
-
-    // Vetor do ponto até v0
-    float vx = px - v0.x;
-    float vy = py - v0.y;
-    float vz = pz - v0.z;
-
-    // Produtos escalares
-    float d00 = v0x*v0x + v0y*v0y + v0z*v0z;
-    float d01 = v0x*v1x + v0y*v1y + v0z*v1z;
-    float d11 = v1x*v1x + v1y*v1y + v1z*v1z;
-    float d20 = vx*v0x + vy*v0y + vz*v0z;
-    float d21 = vx*v1x + vy*v1y + vz*v1z;
-
-    float denom = d00 * d11 - d01 * d01;
-
-    float u = (d11 * d20 - d01 * d21) / denom;
-    float v = (d00 * d21 - d01 * d20) / denom;
-
-    // Se o ponto projetado está dentro do triângulo
-    if (u >= 0 && v >= 0 && (u + v) <= 1.0f) {
-        // Ponto projetado
-        float projX = v0.x + u * v0x + v * v1x;
-        float projY = v0.y + u * v0y + v * v1y;
-        float projZ = v0.z + u * v0z + v * v1z;
-        float dx = px - projX;
-        float dy = py - projY;
-        float dz = pz - projZ;
-        return std::sqrt(dx*dx + dy*dy + dz*dz);
-    }
-
-    // Se estiver fora, calcule a menor distância até as arestas
-    auto pointToSegmentDistance = [](float px, float py, float pz, const Vertex& a, const Vertex& b) {
-        float abx = b.x - a.x;
-        float aby = b.y - a.y;
-        float abz = b.z - a.z;
-
-        float apx = px - a.x;
-        float apy = py - a.y;
-        float apz = pz - a.z;
-
-        float abLenSq = abx*abx + aby*aby + abz*abz;
-        float t = (abx*apx + aby*apy + abz*apz) / abLenSq;
-        t = clamp(t, 0.0f, 1.0f);
-
-        float cx = a.x + t * abx;
-        float cy = a.y + t * aby;
-        float cz = a.z + t * abz;
-
-        float dx = px - cx;
-        float dy = py - cy;
-        float dz = pz - cz;
-
-        return std::sqrt(dx*dx + dy*dy + dz*dz);
-    };
-
-    float d1 = pointToSegmentDistance(px, py, pz, v0, v1);
-    float d2 = pointToSegmentDistance(px, py, pz, v1, v2);
-    float d3 = pointToSegmentDistance(px, py, pz, v2, v0);
-
-    return std::min(d1, std::min(d2, d3));
+float pointToTriangleDistance(float px, float py, float pz,
+                             const Vertex& v1, const Vertex& v2, const Vertex& v3) {
+    // Implementação simplificada - retorna a distância aproximada
+    // Para um projeto real, use um algoritmo mais preciso
+    
+    // Centro do triângulo
+    float cx = (v1.x + v2.x + v3.x) / 3.0f;
+    float cy = (v1.y + v2.y + v3.y) / 3.0f;
+    float cz = (v1.z + v2.z + v3.z) / 3.0f;
+    
+    return sqrt((px-cx)*(px-cx) + (py-cy)*(py-cy) + (pz-cz)*(pz-cz));
 }
 
 // Verifica colisão entre a câmera e os objetos do cenário
@@ -336,31 +187,28 @@ void init() {
     glutWarpPointer(centerX, centerY);
 
     glShadeModel(GL_SMOOTH);
-    
-    // Desativa COLOR_MATERIAL para usar materiais completos
-    glDisable(GL_COLOR_MATERIAL);
-    
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
-    // Configuração mais completa da luz
+    // Configura luz ambiente
     GLfloat lightAmbient[] = {0.2f, 0.2f, 0.2f, 1.0f};
-    GLfloat lightDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
-    GLfloat lightSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};  // Adicionado componente especular
-    GLfloat lightPosition[] = {0.0f, 5.0f, 5.0f, 1.0f};  // Posição mais alta e frontal
+    GLfloat lightDiffuse[] = {0.8f, 0.0f, 0.0f, 1.0f};
+    GLfloat lightPosition[] = {0.0f, 0.0f, 5.0f, 1.0f};
     
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);  // Configura componente especular
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     
-    // Configurações de material padrão REMOVIDAS - deixe os materiais MTL controlarem isso
-    // Isso permite que os materiais do arquivo MTL sejam aplicados corretamente
-}
-
-void updateLightPosition() {
-    GLfloat lightPosition[] = {camX, camY + 2.0f, camZ + 2.0f, 1.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    // Configura material
+    GLfloat matAmbient[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    GLfloat matDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
+    GLfloat matSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat matShininess[] = {50.0f};
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, matAmbient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpecular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
 }
 
 void passiveMotion(int x, int y) {
@@ -385,7 +233,7 @@ void passiveMotion(int x, int y) {
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    float speed = 0.2f;
+    float speed = 0.1f;
     float moveX = dirX, moveZ = dirZ;
     float oldX = camX, oldY = camY, oldZ = camZ;
     float newX = camX, newY = camY, newZ = camZ;
@@ -461,39 +309,28 @@ void update(int value) {
 }
 
 void display() {
-
-    updateLightPosition();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
+    gluLookAt(camX, camY, camZ, 
+              camX + dirX, camY + dirY, camZ + dirZ, 
+              0.0f, 1.0f, 0.0f);
+
+    // Desenha o chão (para referência)
+    glBegin(GL_QUADS);
+    glColor3f(0.3f, 0.3f, 0.3f);
+    glVertex3f(-10.0f, 0.0f, -10.0f);
+    glVertex3f(-10.0f, 0.0f,  10.0f);
+    glVertex3f( 10.0f, 0.0f,  10.0f);
+    glVertex3f( 10.0f, 0.0f, -10.0f);
+    glEnd();
 
     // Desenha o modelo OBJ
     glBegin(GL_TRIANGLES);
-    
-    Material* lastMaterial = nullptr;
-    
+    glColor3f(0.0f, 0.0f, 0.0f);
     for (const auto& face : faces) {
         const Vertex& v1 = vertices[face.v1];
         const Vertex& v2 = vertices[face.v2];
         const Vertex& v3 = vertices[face.v3];
-        
-        // Aplica o material apenas se for diferente do último usado
-        if (face.material != lastMaterial) {
-            if (face.material) {
-                glMaterialfv(GL_FRONT, GL_AMBIENT, face.material->ambient);
-                glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material->diffuse);
-                glMaterialfv(GL_FRONT, GL_SPECULAR, face.material->specular);
-                glMaterialf(GL_FRONT, GL_SHININESS, face.material->shininess);
-            } else {
-                // Usa o material padrão se não houver material específico
-                glMaterialfv(GL_FRONT, GL_AMBIENT, defaultMaterial.ambient);
-                glMaterialfv(GL_FRONT, GL_DIFFUSE, defaultMaterial.diffuse);
-                glMaterialfv(GL_FRONT, GL_SPECULAR, defaultMaterial.specular);
-                glMaterialf(GL_FRONT, GL_SHININESS, defaultMaterial.shininess);
-            }
-            lastMaterial = face.material;
-        }
         
         // Calcula a normal para a face (para iluminação)
         float nx, ny, nz;
@@ -505,8 +342,10 @@ void display() {
         
         // Normaliza a normal
         float len = sqrt(nx*nx + ny*ny + nz*nz);
-        if (len > 0) { nx /= len; ny /= len; nz /= len; }
-
+        if (len > 0) {
+            nx /= len; ny /= len; nz /= len;
+        }
+        
         glNormal3f(nx, ny, nz);
         glVertex3f(v1.x, v1.y, v1.z);
         glVertex3f(v2.x, v2.y, v2.z);
@@ -531,7 +370,7 @@ void reshape(int width, int height) {
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutCreateWindow("Jogo");
+    glutCreateWindow("Navegação com Colisão OBJ");
     glutInitWindowSize(1460, 720);
     glutInitWindowPosition(200, 0);
 
