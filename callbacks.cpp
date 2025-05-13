@@ -1,0 +1,100 @@
+#include "structures.h"
+
+void passiveMotion(int x, int y) {
+    static float targetAngleX = angleX;
+    static float targetAngleY = angleY;
+
+    int deltaX = x - centerX;
+    int deltaY = y - centerY;
+
+    if (deltaX != 0 || deltaY != 0) {
+        targetAngleY += deltaX * sensitivity;
+        targetAngleX -= deltaY * sensitivity;
+        targetAngleX = fmax(-89.0f, fmin(89.0f, targetAngleX));
+
+        angleX = angleX * (1.0f - smoothFactor) + targetAngleX * smoothFactor;
+        angleY = angleY * (1.0f - smoothFactor) + targetAngleY * smoothFactor;
+
+        updateCamera();
+        glutWarpPointer(centerX, centerY);
+    }
+}
+
+
+void keyboard(unsigned char key, int x, int y) {
+    float speed = 0.2f;
+    float moveX = dirX, moveZ = dirZ;
+    float oldX = camX, oldY = camY, oldZ = camZ;
+    float newX = camX, newY = camY, newZ = camZ;
+    
+    normalizeHorizontal(moveX, moveZ);
+
+    switch (key) {
+        case 'w':
+            newX += moveX * speed;
+            newZ += moveZ * speed;
+            break;
+        case 's':
+            newX -= moveX * speed;
+            newZ -= moveZ * speed;
+            break;
+        case 'a':
+            newX += moveZ * speed;
+            newZ += -moveX * speed;
+            break;
+        case 'd':
+            newX += -moveZ * speed;
+            newZ += moveX * speed;
+            break;
+        case ' ':
+            newY += speed;
+            break;
+        case 'c':
+            newY -= speed;
+            break;
+        case 27:
+            glutLeaveMainLoop();
+            break;
+        case 'l':
+        case 'L':
+            inside = !inside;
+            cout << "Cena alterada para: " << (inside ? "Interna" : "Externa") << endl;
+            break;
+    }
+    
+    checkCollisionWithResponse(newX, newY, newZ, oldX, oldY, oldZ);
+    
+    camX = newX;
+    camY = newY;
+    camZ = newZ;
+    
+    glutPostRedisplay();
+}
+
+void specialKeyboard(int key, int x, int y) {
+    if (key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
+        shiftPressed = true;
+    }
+    glutPostRedisplay();
+}
+
+void specialKeyboardUp(int key, int x, int y) {
+    if (key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
+        shiftPressed = false;
+    }
+}
+
+void update(int value) {
+    if (shiftPressed) {
+        float oldY = camY;
+        float newY = camY - 0.05f;
+        
+        if (!checkCollision(camX, newY, camZ)) {
+            camY = newY;
+        } else {
+            camY = oldY;
+        }
+    }
+    glutPostRedisplay();
+    glutTimerFunc(16, update, 0);
+}
