@@ -1,7 +1,8 @@
 #include "structures.h"
 
 void generateDisplayLists() {
-    if (displayListGenerated) return;
+    if(displayListGenerated)
+        return;
     
     // Gera display list para cena interna
     displayListInside = glGenLists(1);
@@ -10,17 +11,17 @@ void generateDisplayLists() {
     glBegin(GL_TRIANGLES);
     Material* lastMaterial = nullptr;
     
-    for (const auto& face : facesInside) {
+    for(const auto& face : facesInside) {
         const Vertex& v1 = verticesInside[face.v1];
         const Vertex& v2 = verticesInside[face.v2];
         const Vertex& v3 = verticesInside[face.v3];
         
-        if (face.material != lastMaterial) {
-            if (face.material) {
-                glMaterialfv(GL_FRONT, GL_AMBIENT, face.material->ambient);
-                glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material->diffuse);
-                glMaterialfv(GL_FRONT, GL_SPECULAR, face.material->specular);
-                glMaterialf(GL_FRONT, GL_SHININESS, face.material->shininess);
+        if(face.material != lastMaterial) {
+            if(face.material) {
+                glMaterialfv(GL_FRONT, GL_AMBIENT, face.material -> ambient);
+                glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material -> diffuse);
+                glMaterialfv(GL_FRONT, GL_SPECULAR, face.material -> specular);
+                glMaterialf(GL_FRONT, GL_SHININESS, face.material -> shininess);
             } else {
                 glMaterialfv(GL_FRONT, GL_AMBIENT, defaultMaterial.ambient);
                 glMaterialfv(GL_FRONT, GL_DIFFUSE, defaultMaterial.diffuse);
@@ -38,7 +39,9 @@ void generateDisplayLists() {
         nz = ux * vy - uy * vx;
         
         float len = sqrt(nx*nx + ny*ny + nz*nz);
-        if (len > 0) { nx /= len; ny /= len; nz /= len; }
+        
+        if (len > 0)
+            nx /= len; ny /= len; nz /= len;
 
         glNormal3f(nx, ny, nz);
         glVertex3f(v1.x, v1.y, v1.z);
@@ -55,17 +58,17 @@ void generateDisplayLists() {
     glBegin(GL_TRIANGLES);
     lastMaterial = nullptr;
     
-    for (const auto& face : facesOutside) {
+    for(const auto& face : facesOutside) {
         const Vertex& v1 = verticesOutside[face.v1];
         const Vertex& v2 = verticesOutside[face.v2];
         const Vertex& v3 = verticesOutside[face.v3];
         
-        if (face.material != lastMaterial) {
-            if (face.material) {
-                glMaterialfv(GL_FRONT, GL_AMBIENT, face.material->ambient);
-                glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material->diffuse);
-                glMaterialfv(GL_FRONT, GL_SPECULAR, face.material->specular);
-                glMaterialf(GL_FRONT, GL_SHININESS, face.material->shininess);
+        if(face.material != lastMaterial) {
+            if(face.material) {
+                glMaterialfv(GL_FRONT, GL_AMBIENT, face.material -> ambient);
+                glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material -> diffuse);
+                glMaterialfv(GL_FRONT, GL_SPECULAR, face.material -> specular);
+                glMaterialf(GL_FRONT, GL_SHININESS, face.material -> shininess);
             } else {
                 glMaterialfv(GL_FRONT, GL_AMBIENT, defaultMaterial.ambient);
                 glMaterialfv(GL_FRONT, GL_DIFFUSE, defaultMaterial.diffuse);
@@ -83,7 +86,9 @@ void generateDisplayLists() {
         nz = ux * vy - uy * vx;
         
         float len = sqrt(nx*nx + ny*ny + nz*nz);
-        if (len > 0) { nx /= len; ny /= len; nz /= len; }
+
+        if (len > 0)
+            nx /= len; ny /= len; nz /= len;
 
         glNormal3f(nx, ny, nz);
         glVertex3f(v1.x, v1.y, v1.z);
@@ -135,14 +140,13 @@ void display() {
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
 
-    // Gera as display lists na primeira renderização
     if (!displayListGenerated) {
         generateDisplayLists();
     }
     
-    // Renderiza a cena apropriada
     if (inside) {
         glCallList(displayListInside);
+        drawGhost(); // Desenha a esfera apenas na cena interna
     } else {
         glCallList(displayListOutside);
     }
@@ -151,7 +155,8 @@ void display() {
 }
 
 void reshape(int width, int height) {
-    if (height == 0) height = 1;
+    if(height == 0)
+        height = 1;
     float ratio = width * 1.0f / height;
     
     glMatrixMode(GL_PROJECTION);
@@ -163,7 +168,7 @@ void reshape(int width, int height) {
 
 // Limpeza de recursos
 void cleanup() {
-    if (displayListGenerated) {
+    if(displayListGenerated) {
         glDeleteLists(displayListInside, 1);
         glDeleteLists(displayListOutside, 1);
     }

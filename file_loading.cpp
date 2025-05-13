@@ -27,19 +27,19 @@ bool loadMTL(const char* path, bool isInside) {
                 materialsOutside[name] = Material();
                 currentMat = &materialsOutside[name];
             }
-            currentMat->name = name;
+            currentMat -> name = name;
         }
         else if (type == "Ka" && currentMat) {
-            iss >> currentMat->ambient[0] >> currentMat->ambient[1] >> currentMat->ambient[2];
+            iss >> currentMat -> ambient[0] >> currentMat -> ambient[1] >> currentMat -> ambient[2];
         }
         else if (type == "Kd" && currentMat) {
-            iss >> currentMat->diffuse[0] >> currentMat->diffuse[1] >> currentMat->diffuse[2];
+            iss >> currentMat -> diffuse[0] >> currentMat -> diffuse[1] >> currentMat -> diffuse[2];
         }
         else if (type == "Ks" && currentMat) {
-            iss >> currentMat->specular[0] >> currentMat->specular[1] >> currentMat->specular[2];
+            iss >> currentMat -> specular[0] >> currentMat -> specular[1] >> currentMat -> specular[2];
         }
         else if (type == "Ns" && currentMat) {
-            iss >> currentMat->shininess;
+            iss >> currentMat -> shininess;
         }
     }
 

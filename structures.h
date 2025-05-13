@@ -1,15 +1,15 @@
 #pragma once
 
 #include <GL/freeglut.h>
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <map>
 #include <unordered_map>
 #include <algorithm>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <cmath>
+#include <map>
 
 using namespace std;
 
@@ -53,7 +53,18 @@ struct CollisionMesh {
     vector<Face> faces;
 };
 
-// Declarações de variáveis globais
+struct Ghost {
+    float x, y, z;
+    float dirX, dirY, dirZ;
+    float radius;
+    float matAmbient[4];
+    float matDiffuse[4];
+    float matSpecular[4];
+    float matShininess;
+};
+
+// Declaração da variável global
+extern Ghost ghost;
 extern vector<Vertex> verticesInside;
 extern vector<Face> facesInside;
 extern map<string, Material> materialsInside;
@@ -67,6 +78,7 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
+extern Ghost ghost;
 
 // Declarações de funções
 void normalizeHorizontal(float& x, float& z);
@@ -88,3 +100,6 @@ void updateLightPosition();
 void display();
 void reshape(int width, int height);
 void cleanup();
+void initGhost();
+void updateGhost();
+void drawGhost();

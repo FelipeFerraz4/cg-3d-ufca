@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     glutInitWindowSize(1460, 720);
     glutInitWindowPosition(200, 0);
 
-    if(!loadOBJ("teste.obj", true))
+    if(!loadOBJ("objetos 3d/Interno.obj", true))
         return 1;
     if(!loadOBJ("objetos 3d/Externo.obj", false))
         return 1;
