@@ -11,46 +11,87 @@ void initGhost() {
     }
 }
 
-void updateGhost() {
-    // Atualiza a posição
+void updateGhost(Ghost &ghost) {
+    // Atualiza a posição com base na direção atual
     ghost.x += ghost.dirX;
     ghost.y += ghost.dirY;
     ghost.z += ghost.dirZ;
     
-    // Limites da cena interna (ajuste conforme seu modelo)
+    // Limites da cena (ajustados para o ambiente do jogo)
     const float minX = 20.0f, maxX = 80.0f;
-    const float minY = 3.0f, maxY = 10.0f; // Evita que a esfera vá abaixo do chão
+    const float minY = 3.0f, maxY = 10.0f;
     const float minZ = -14.0f, maxZ = 25.0f;
     
-    // Verifica os limites e inverte a direção se necessário
-    if (ghost.x > maxX || ghost.x < minX) {
-        ghost.dirX = -ghost.dirX * (0.8f + (rand() % 40) / 100.0f);
+    // Verifica colisões com os limites e inverte direção
+    if(ghost.x > maxX || ghost.x < minX) {
+        ghost.dirX = -ghost.dirX * 0.9f; // Inverte com pequena perda de energia
+        ghost.x = clamp(ghost.x, minX, maxX); // Corrige posição
     }
-    if (ghost.y > maxY || ghost.y < minY) {
-        ghost.dirY = -ghost.dirY * (0.8f + (rand() % 40) / 100.0f);
+    if(ghost.y > maxY || ghost.y < minY) {
+        ghost.dirY = -ghost.dirY * 0.9f;
+        ghost.y = clamp(ghost.y, minY, maxY);
     }
-    if (ghost.z > maxZ || ghost.z < minZ) {
-        ghost.dirZ = -ghost.dirZ * (0.8f + (rand() % 40) / 100.0f);
+    if(ghost.z > maxZ || ghost.z < minZ) {
+        ghost.dirZ = -ghost.dirZ * 0.9f;
+        ghost.z = clamp(ghost.z, minZ, maxZ);
     }
     
-    // Ocasionalmente muda a direção aleatoriamente
-    if (rand() % 100 < 5) { // 5% de chance a cada frame
-        ghost.dirX = (rand() % 100 - 50) / 1000.0f;
-        ghost.dirY = (rand() % 100 - 50) / 1000.0f;
-        ghost.dirZ = (rand() % 100 - 50) / 1000.0f;
+    // Mudança aleatória de direção (5% de chance por frame)
+    if(rand() % 100 < 5) {
+        ghost.dirX += (rand() % 100 - 50) / 500.0f;
+        ghost.dirY += (rand() % 100 - 50) / 500.0f;
+        ghost.dirZ += (rand() % 100 - 50) / 500.0f;
+        
+        // Normaliza a velocidade para manter movimento constante
+        float speed = sqrt(ghost.dirX*ghost.dirX + ghost.dirY*ghost.dirY + ghost.dirZ*ghost.dirZ);
+        float desiredSpeed = 0.1f; // Velocidade base
+        ghost.dirX = ghost.dirX / speed * desiredSpeed;
+        ghost.dirY = ghost.dirY / speed * desiredSpeed;
+        ghost.dirZ = ghost.dirZ / speed * desiredSpeed;
     }
 }
 
-void drawGhost() {
+void drawGhost(Ghost &ghost) {
     glPushMatrix();
     glTranslatef(ghost.x, ghost.y, ghost.z);
+    glScalef(0.1f, 0.1f, 0.1f); // Ajuste este valor conforme necessário
     
-    // Configura o material da esfera
+    // Configura material
     glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
     glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
     
-    glutSolidSphere(ghost.radius, 32, 32);
+    // Desenha o modelo
+    glBegin(GL_TRIANGLES);
+    for(const auto& face : ghostFaces) {
+        if(face.v1 >= ghostVertices.size() || face.v2 >= ghostVertices.size() || face.v3 >= ghostVertices.size()) {
+            cerr << "Índice de vértice inválido!" << endl;
+            continue;
+        }
+        
+        const Vertex& v1 = ghostVertices[face.v1];
+        const Vertex& v2 = ghostVertices[face.v2];
+        const Vertex& v3 = ghostVertices[face.v3];
+        
+        // Calcula normal
+        float ux = v2.x - v1.x, uy = v2.y - v1.y, uz = v2.z - v1.z;
+        float vx = v3.x - v1.x, vy = v3.y - v1.y, vz = v3.z - v1.z;
+        float nx = uy * vz - uz * vy;
+        float ny = uz * vx - ux * vz;
+        float nz = ux * vy - uy * vx;
+        float len = sqrt(nx*nx + ny*ny + nz*nz);
+        
+        if (len > 0) {
+            nx /= len; ny /= len; nz /= len;
+        }
+
+        glNormal3f(nx, ny, nz);
+        glVertex3f(v1.x, v1.y, v1.z);
+        glVertex3f(v2.x, v2.y, v2.z);
+        glVertex3f(v3.x, v3.y, v3.z);
+    }
+    glEnd();
+    
     glPopMatrix();
 }

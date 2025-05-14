@@ -148,3 +148,51 @@ bool loadOBJ(const char* path, bool isInside) {
     
     return true;
 }
+
+bool loadGhost(const char* path) {
+    ifstream file(path);
+    if (!file.is_open()) {
+        cerr << "Erro ao abrir o arquivo: " << path << endl;
+        return false;
+    }
+
+    string line;
+    ghostVertices.clear();
+    ghostFaces.clear();
+
+    while(getline(file, line)) {
+        istringstream iss(line);
+        string type;
+        iss >> type;
+
+        if (type == "v") {
+            Vertex v;
+            iss >> v.x >> v.y >> v.z;
+            ghostVertices.push_back(v);
+        }
+        else if (type == "f") {
+            Face f;
+            string v1, v2, v3;
+            iss >> v1 >> v2 >> v3;
+            
+            // Remove texturas/normais se existirem
+            v1 = v1.substr(0, v1.find('/'));
+            v2 = v2.substr(0, v2.find('/'));
+            v3 = v3.substr(0, v3.find('/'));
+            
+            f.v1 = stoi(v1) - 1;
+            f.v2 = stoi(v2) - 1;
+            f.v3 = stoi(v3) - 1;
+            f.material = &defaultMaterial;  // Usa material padrão
+
+            ghostFaces.push_back(f);
+        }
+    }
+
+    file.close();
+    cout << "Modelo do fantasma carregado com sucesso!" << endl;
+    cout << "Vértices: " << ghostVertices.size() << endl;
+    cout << "Faces: " << ghostFaces.size() << endl;
+    
+    return true;
+}

@@ -1,5 +1,28 @@
 #include "structures.h"
 
+void lighting() {
+    glShadeModel(GL_SMOOTH);
+    glDisable(GL_COLOR_MATERIAL);
+
+    float ambientLight[4] = {0.4f, 0.4f, 0.4f, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
+
+    GLfloat lightDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
+    GLfloat lightSpecular[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    GLfloat black[] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+
+    // SpotLight configs
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0f); // Ângulo da lanterna
+    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 15.0f); // Concentração da luz
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+}
+
 void generateDisplayLists() {
     if(displayListGenerated)
         return;
@@ -112,25 +135,17 @@ void init() {
     centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
     glutWarpPointer(centerX, centerY);
 
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_COLOR_MATERIAL);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    
-    GLfloat lightAmbient[] = {0.2f, 0.2f, 0.2f, 1.0f};
-    GLfloat lightDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
-    GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat lightPosition[] = {0.0f, 5.0f, 5.0f, 1.0f};
-    
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    lighting();
 }
 
 void updateLightPosition() {
-    GLfloat lightPosition[] = {camX, camY + 2.0f, camZ + 2.0f, 1.0f};
+    // Posição da luz (acima e um pouco à frente da câmera)
+    GLfloat lightPosition[] = {camX, camY + 1.0f, camZ, 1.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+    // Direção da luz baseada no vetor de direção da câmera
+    GLfloat lightDirection[] = {dirX, dirY, dirZ};
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightDirection);
 }
 
 void display() {
@@ -146,11 +161,48 @@ void display() {
     
     if (inside) {
         glCallList(displayListInside);
-        drawGhost(); // Desenha a esfera apenas na cena interna
+        
+        // Desenha os 3 fantasmas
+        for(int i = 0; i < 3; i++) {
+            Ghost& ghost = (i == 0) ? ghost1 : (i == 1) ? ghost2 : ghost3;
+            
+            glPushMatrix();
+            glTranslatef(ghost.x, ghost.y, ghost.z);
+            glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
+            
+            // Configura material
+            glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
+            glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
+            glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
+            
+            // Desenha o modelo
+            glBegin(GL_TRIANGLES);
+            for(const auto& face : ghostFaces) {
+                const Vertex& v1 = ghostVertices[face.v1];
+                const Vertex& v2 = ghostVertices[face.v2];
+                const Vertex& v3 = ghostVertices[face.v3];
+                
+                // Calcula normal
+                float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
+                float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
+                float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
+                float len = sqrt(nx*nx + ny*ny + nz*nz);
+                
+                if(len > 0) { nx /= len; ny /= len; nz /= len; }
+                
+                glNormal3f(nx, ny, nz);
+                glVertex3f(v1.x, v1.y, v1.z);
+                glVertex3f(v2.x, v2.y, v2.z);
+                glVertex3f(v3.x, v3.y, v3.z);
+            }
+            glEnd();
+            glPopMatrix();
+        }
     } else {
         glCallList(displayListOutside);
     }
-
+    
     glutSwapBuffers();
 }
 

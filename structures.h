@@ -78,7 +78,10 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
-extern Ghost ghost;
+extern Ghost ghost1, ghost2, ghost3;
+extern vector<Vertex> ghostVertices;
+extern vector<Face> ghostFaces;
+extern float scaleGhost;
 
 // Declarações de funções
 void normalizeHorizontal(float& x, float& z);
@@ -101,5 +104,7 @@ void display();
 void reshape(int width, int height);
 void cleanup();
 void initGhost();
-void updateGhost();
-void drawGhost();
+void updateGhost(Ghost &ghost);
+void drawGhost(Ghost &ghost);
+bool loadGhost(const char* path);
+void lighting();
