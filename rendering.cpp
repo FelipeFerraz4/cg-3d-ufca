@@ -228,15 +228,30 @@ void generateDisplayLists() {
 // Inicialização do OpenGL
 void init() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    gluPerspective(60.0f, 1.0f, 1.0f, 100.0f);
-    glMatrixMode(GL_MODELVIEW);
-    
-    centerX = glutGet(GLUT_WINDOW_WIDTH) / 2;
-    centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+    loadTextures();
 
-    glutWarpPointer(centerX, centerY);
+    if(aliveGhosts <= 0){
+        loadTextures();
+        glEnable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        gluPerspective(60.0f, 1.0f, 1.0f, 100.0f);
+        glMatrixMode(GL_MODELVIEW);
+        
+        centerX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+        centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+        glutWarpPointer(centerX, centerY);
+    }else{
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        gluPerspective(60.0f, 1.0f, 1.0f, 100.0f);
+        glMatrixMode(GL_MODELVIEW);
+        
+        centerX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+        centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+
+        glutWarpPointer(centerX, centerY);
+    }
     loadTextures();
 }
 
@@ -252,18 +267,28 @@ void updateLightPosition() {
 
 void display() {
     
-    if(aliveGhosts == 0){
-        glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+    if(aliveGhosts <= 0){
+    // Configuração exclusiva para 2D
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+    glDisable(GL_LIGHT1);
     
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex2f(1460, 0.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex2f(1460, 720);
-        glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 720);
-    glEnd();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, 1460, 720, 0);
     
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Renderização do background
+    glEnable(GL_TEXTURE_2D);
+    drawBackground();
     glDisable(GL_TEXTURE_2D);
+    
+    glutSwapBuffers();
     }else{
         updateLightPosition();
 
