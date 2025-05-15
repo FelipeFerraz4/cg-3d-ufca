@@ -112,8 +112,11 @@ void drawGhost(Ghost &ghost) {
 
 void isPlayerHitByGhost() {
     for(int i = 0; i < qtdGhosts; i++) {
+        int x = camX - ghosts[i].x;
+        int y = camY - ghosts[i].y;
+        int z = camZ - ghosts[i].z;
         if(ghosts[i].alive) {
-            if(sqrt(ghosts[i].x * ghosts[i].x  + ghosts[i].y * ghosts[i].y + ghosts[i].z * ghosts[i].z) < 1) {
+            if((sqrt(x * x + y * y + z * z) <= 1.0)) {
                 playerIsAlive = false;
                 break;
             }

@@ -46,19 +46,8 @@ void keyboard(unsigned char key, int x, int y) {
             newX += -moveZ * speed;
             newZ += moveX * speed;
             break;
-        case ' ':
-            newY += speed;
-            break;
-        case 'c':
-            newY -= speed;
-            break;
         case 27:
             glutLeaveMainLoop();
-            break;
-        case 'l':
-        case 'L':
-            inside = !inside;
-            cout << "Cena alterada para: " << (inside ? "Interna" : "Externa") << endl;
             break;
     }
     

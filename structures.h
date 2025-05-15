@@ -81,7 +81,7 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
-extern Ghost ghosts[1];
+extern Ghost ghosts[40];
 extern vector<Vertex> ghostVertices;
 extern vector<Face> ghostFaces;
 extern float scaleGhost;

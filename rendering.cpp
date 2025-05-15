@@ -338,6 +338,8 @@ void display() {
             glCallList(displayListOutside);
         }
 
+
+        isPlayerHitByGhost();
         cout << "Tá vivo? " << playerIsAlive << endl;
         cout << "Fantasmas " << aliveGhosts << endl;
 
@@ -350,6 +352,9 @@ void display() {
             dirZ = 0.0610081f;
             aliveGhosts--;
         }
+
+        if(!playerIsAlive)
+            exit(1);
 
         lighting();
         glutSwapBuffers();
