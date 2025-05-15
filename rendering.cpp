@@ -210,6 +210,7 @@ void updateLightPosition() {
 }
 
 void display() {
+    
     updateLightPosition();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -285,6 +286,16 @@ void display() {
 
     cout << "Tá vivo? " << playerIsAlive << endl;
     cout << "Fantasmas " << aliveGhosts << endl;
+
+    if(aliveGhosts == 0) {
+        inside = false;
+        camX = -16.093f;
+        camY = 1.40001f;
+        camZ = -0.982863f;
+        dirX = 0.997792f; dirY = -0.0262446f;
+        dirZ = 0.0610081f;
+        aliveGhosts--;
+    }
 
     lighting();
     glutSwapBuffers();

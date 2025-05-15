@@ -10,7 +10,7 @@ int initGhost() {
         initialized = true;
     }
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < qtdGhosts; i++) {
         ghosts[i] = {
             .x = 45.0f, .y = 7.5f, .z = 10.0f,
             .dirX = 0.05f, .dirY = 0.05f, .dirZ = 0.05f,
