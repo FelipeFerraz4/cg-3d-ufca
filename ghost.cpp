@@ -2,13 +2,27 @@
 #include <cstdlib>
 #include <ctime>
 
-void initGhost() {
+int initGhost() {
     // Inicializa o gerador de números aleatórios
     static bool initialized = false;
     if (!initialized) {
         srand(static_cast<unsigned>(time(nullptr)));
         initialized = true;
     }
+
+    for(int i = 0; i < 10; i++) {
+        ghosts[i] = {
+            .x = 45.0f, .y = 7.5f, .z = 10.0f,
+            .dirX = 0.05f, .dirY = 0.05f, .dirZ = 0.05f,
+            .radius = 0.5f,
+            .matAmbient = {0.7f, 0.7f, 0.7f, 1.0f},
+            .matDiffuse = {0.8f, 0.8f, 0.8f, 1.0f},
+            .matSpecular = {1.0f, 1.0f, 1.0f, 1.0f},
+            .matShininess = 50.0f,
+            .alive = true
+        };
+    }
+    return 1;
 }
 
 void updateGhost(Ghost &ghost) {

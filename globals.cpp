@@ -37,36 +37,11 @@ Material::Material() : shininess(0.0f) {
     }
 }
 
-Ghost ghost1 = {
-    .x = 45.0f, .y = 7.5f, .z = 10.0f,
-    .dirX = 0.05f, .dirY = 0.05f, .dirZ = 0.05f,
-    .radius = 0.5f,
-    .matAmbient = {0.7f, 0.7f, 0.7f, 1.0f},
-    .matDiffuse = {0.8f, 0.8f, 0.8f, 1.0f},
-    .matSpecular = {1.0f, 1.0f, 1.0f, 1.0f},
-    .matShininess = 50.0f
-};
-
-Ghost ghost2 = {
-    .x = 45.0f, .y = 7.5f, .z = 10.0f,
-    .dirX = 0.05f, .dirY = 0.05f, .dirZ = 0.05f,
-    .radius = 0.5f,
-    .matAmbient = {0.7f, 0.7f, 0.7f, 1.0f},
-    .matDiffuse = {0.8f, 0.8f, 0.8f, 1.0f},
-    .matSpecular = {1.0f, 1.0f, 1.0f, 1.0f},
-    .matShininess = 50.0f
-};
-
-Ghost ghost3 = {
-    .x = 45.0f, .y = 7.5f, .z = 10.0f,
-    .dirX = 0.05f, .dirY = 0.05f, .dirZ = 0.05f,
-    .radius = 0.5f,
-    .matAmbient = {0.7f, 0.7f, 0.7f, 1.0f},
-    .matDiffuse = {0.8f, 0.8f, 0.8f, 1.0f},
-    .matSpecular = {1.0f, 1.0f, 1.0f, 1.0f},
-    .matShininess = 50.0f
-};
+int gambiarra = initGhost();
 
 vector<Vertex> ghostVertices;
 vector<Face> ghostFaces;
 float scaleGhost = 10.0f;
+int aliveGhosts = 40;
+int qtdGhosts = 40;
+Ghost ghosts[40];

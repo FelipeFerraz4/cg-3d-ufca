@@ -535,7 +535,7 @@ int main(int argc, char** argv) {
     glutInitWindowSize(1460, 720);
     glutInitWindowPosition(200, 0);
 
-    if (!loadOBJ("teste.obj")) { // Substitua pelo caminho do seu arquivo OBJ
+    if (!loadOBJ("objetos_3d/Externo.obj")) { // Substitua pelo caminho do seu arquivo OBJ
         return 1;
     }
 

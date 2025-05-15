@@ -1,5 +1,42 @@
 #include "structures.h"
 
+bool isGhostHitByLight(const Ghost& ghost, float lightX, float lightY, float lightZ, float dirX, float dirY, float dirZ, float cutoffAngle, float maxDistance) // <- novo parâmetro
+{
+    if(!ghost.alive)
+        return false;
+    // Vetor da luz até o fantasma
+    float dx = ghost.x - lightX;
+    float dy = ghost.y - lightY;
+    float dz = ghost.z - lightZ;
+
+    // Distância entre luz e fantasma
+    float distance = sqrt(dx*dx + dy*dy + dz*dz);
+
+    // Verifica se o fantasma está dentro do alcance da luz
+    if (distance > maxDistance) return false;
+
+    // Normaliza o vetor de direção da luz
+    float lightDirLen = sqrt(dirX*dirX + dirY*dirY + dirZ*dirZ);
+    float lx = dirX / lightDirLen;
+    float ly = dirY / lightDirLen;
+    float lz = dirZ / lightDirLen;
+
+    // Normaliza o vetor até o fantasma
+    float ghostDirLen = distance; // já calculado
+    float gx = dx / ghostDirLen;
+    float gy = dy / ghostDirLen;
+    float gz = dz / ghostDirLen;
+
+    // Produto escalar entre os vetores
+    float dot = lx * gx + ly * gy + lz * gz;
+
+    // Ângulo entre direção da luz e o vetor até o fantasma
+    float angle = acos(dot) * 180.0f / M_PI;
+
+    // Verifica se o ângulo está dentro do cone da lanterna
+    return angle < cutoffAngle;
+}
+
 void lighting() {
     glShadeModel(GL_SMOOTH);
     glDisable(GL_COLOR_MATERIAL);
@@ -20,7 +57,24 @@ void lighting() {
     glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 15.0f); // Concentração da luz
 
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+
+    GLfloat lightDiffuse1[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    GLfloat lightSpecular1[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    // GLfloat lightPosition[] = {0.0f, 5.0f, 5.0f, 1.0f};
+    GLfloat lightPosition[] = {-31.3182f, 47.2501f, 11.8853f, 1.0f};
+
+    glLightfv(GL_LIGHT1, GL_AMBIENT, black);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lightSpecular);
+    glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);
+
+    if(inside) {
+        glEnable(GL_LIGHT0);
+        glDisable(GL_LIGHT1);
+    } else {
+        glDisable(GL_LIGHT0);
+        glEnable(GL_LIGHT1);
+    }
 }
 
 void generateDisplayLists() {
@@ -131,11 +185,11 @@ void init() {
     glMatrixMode(GL_PROJECTION);
     gluPerspective(60.0f, 1.0f, 1.0f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
+    
     centerX = glutGet(GLUT_WINDOW_WIDTH) / 2;
     centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-    glutWarpPointer(centerX, centerY);
 
-    lighting();
+    glutWarpPointer(centerX, centerY);
 }
 
 void updateLightPosition() {
@@ -155,7 +209,7 @@ void display() {
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
 
-    if (!displayListGenerated) {
+    if(!displayListGenerated) {
         generateDisplayLists();
     }
     
@@ -163,46 +217,66 @@ void display() {
         glCallList(displayListInside);
         
         // Desenha os 3 fantasmas
-        for(int i = 0; i < 3; i++) {
-            Ghost& ghost = (i == 0) ? ghost1 : (i == 1) ? ghost2 : ghost3;
+        for(int i = 0; i < qtdGhosts; i++) {
+            Ghost& ghost = ghosts[i];
             
-            glPushMatrix();
-            glTranslatef(ghost.x, ghost.y, ghost.z);
-            glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
-            
-            // Configura material
-            glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
-            glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
-            glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
-            glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
-            
-            // Desenha o modelo
-            glBegin(GL_TRIANGLES);
-            for(const auto& face : ghostFaces) {
-                const Vertex& v1 = ghostVertices[face.v1];
-                const Vertex& v2 = ghostVertices[face.v2];
-                const Vertex& v3 = ghostVertices[face.v3];
+            if(ghost.alive) {
+                glPushMatrix();
+                glTranslatef(ghost.x, ghost.y, ghost.z);
+                glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
                 
-                // Calcula normal
-                float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
-                float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
-                float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
-                float len = sqrt(nx*nx + ny*ny + nz*nz);
+                // Configura material
+                glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
+                glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
+                glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
+                glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
                 
-                if(len > 0) { nx /= len; ny /= len; nz /= len; }
-                
-                glNormal3f(nx, ny, nz);
-                glVertex3f(v1.x, v1.y, v1.z);
-                glVertex3f(v2.x, v2.y, v2.z);
-                glVertex3f(v3.x, v3.y, v3.z);
+                // Desenha o modelo
+                glBegin(GL_TRIANGLES);
+                for(const auto& face : ghostFaces) {
+                    const Vertex& v1 = ghostVertices[face.v1];
+                    const Vertex& v2 = ghostVertices[face.v2];
+                    const Vertex& v3 = ghostVertices[face.v3];
+                    
+                    // Calcula normal
+                    float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
+                    float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
+                    float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
+                    float len = sqrt(nx*nx + ny*ny + nz*nz);
+                    
+                    if(len > 0) { nx /= len; ny /= len; nz /= len; }
+                    
+                    glNormal3f(nx, ny, nz);
+                    glVertex3f(v1.x, v1.y, v1.z);
+                    glVertex3f(v2.x, v2.y, v2.z);
+                    glVertex3f(v3.x, v3.y, v3.z);
+                }
+                glEnd();
+                glPopMatrix();
             }
-            glEnd();
-            glPopMatrix();
+        }
+
+        GLfloat lightX = camX;
+        GLfloat lightY = camY + 1.0f;
+        GLfloat lightZ = camZ;
+
+        for (int i = 0; i < qtdGhosts; i++) {
+            Ghost& ghost = ghosts[i];
+            
+            bool hit = isGhostHitByLight(ghost, lightX, lightY, lightZ, dirX, dirY, dirZ, 30.0f, 5.0f); // Ângulo e distância máximos
+
+            if(hit) {
+                ghosts[i].alive = false;
+                aliveGhosts--;
+                printf("Fantasma %d foi atingido pela luz!\n", i+1);
+                printf("Fantasmas vivos: %d\n", aliveGhosts);
+            }
         }
     } else {
         glCallList(displayListOutside);
     }
     
+    lighting();
     glutSwapBuffers();
 }
 

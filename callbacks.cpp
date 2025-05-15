@@ -72,19 +72,19 @@ void keyboard(unsigned char key, int x, int y) {
     if(camX>= -4.75 && camX <= -4.35 && camY >= 1.3 && camY <= 1.5 && camZ >= -4.88 && camZ <= -4.08) {
         inside = true;
         camX = 22.01f;
-        camY = 5.2f;
+        camY = 4.7f;
         camZ = 3.03f;
     }
     if(camX>= -4.75 && camX <= -4.35 && camY >= 1.3 && camY <= 1.5 && camZ >= -1.0 && camZ <= 0.6) {
         inside = true;
         camX = 22.01f;
-        camY = 5.2f;
+        camY = 4.7f;
         camZ = 5.43f;
     }
     if(camX>= -4.75 && camX <= -4.35 && camY >= 1.3 && camY <= 1.5 && camZ >= 3.89 && camZ <= 4.69) {
         inside = true;
         camX = 22.01f;
-        camY = 5.2f;
+        camY = 4.7f;
         camZ = 8.22f;
     }
 
@@ -120,9 +120,8 @@ void update(int value) {
     
     // Atualiza a posição da esfera apenas na cena interna
     if (inside) {
-        updateGhost(ghost1);
-        updateGhost(ghost2);
-        updateGhost(ghost3);
+        for(int i = 0; i < qtdGhosts; i++)
+            updateGhost(ghosts[i]);
     }
     
     glutPostRedisplay();

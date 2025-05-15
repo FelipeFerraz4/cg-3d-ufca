@@ -61,6 +61,7 @@ struct Ghost {
     float matDiffuse[4];
     float matSpecular[4];
     float matShininess;
+    bool alive;
 };
 
 // Declaração da variável global
@@ -78,10 +79,13 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
-extern Ghost ghost1, ghost2, ghost3;
+extern Ghost ghosts[40];
 extern vector<Vertex> ghostVertices;
 extern vector<Face> ghostFaces;
 extern float scaleGhost;
+extern int aliveGhosts;
+extern int gambiarra;
+extern int qtdGhosts;
 
 // Declarações de funções
 void normalizeHorizontal(float& x, float& z);
@@ -103,8 +107,10 @@ void updateLightPosition();
 void display();
 void reshape(int width, int height);
 void cleanup();
-void initGhost();
+int initGhost();
 void updateGhost(Ghost &ghost);
 void drawGhost(Ghost &ghost);
 bool loadGhost(const char* path);
 void lighting();
+bool isGhostHitByLight(const Ghost& ghost, float lightX, float lightY, float lightZ, float dirX, float dirY, float dirZ, float cutoffAngle, float maxDistance);
+bool isPlayerHitByGhost();
