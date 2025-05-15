@@ -2,6 +2,7 @@
 
 #include <GL/freeglut.h>
 #include <unordered_map>
+#include <SOIL/SOIL.h>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -46,6 +47,7 @@ struct Material {
 struct Face {
     int v1, v2, v3;
     Material* material;
+    string name = "";
 };
 
 struct CollisionMesh {
@@ -79,13 +81,14 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
-extern Ghost ghosts[40];
+extern Ghost ghosts[100];
 extern vector<Vertex> ghostVertices;
 extern vector<Face> ghostFaces;
 extern float scaleGhost;
 extern int aliveGhosts;
 extern int gambiarra;
 extern int qtdGhosts;
+extern bool playerIsAlive;
 
 // Declarações de funções
 void normalizeHorizontal(float& x, float& z);
@@ -113,4 +116,4 @@ void drawGhost(Ghost &ghost);
 bool loadGhost(const char* path);
 void lighting();
 bool isGhostHitByLight(const Ghost& ghost, float lightX, float lightY, float lightZ, float dirX, float dirY, float dirZ, float cutoffAngle, float maxDistance);
-bool isPlayerHitByGhost();
+void isPlayerHitByGhost();

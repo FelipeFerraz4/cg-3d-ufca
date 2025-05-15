@@ -146,6 +146,13 @@ void generateDisplayLists() {
                 glMaterialfv(GL_FRONT, GL_DIFFUSE, face.material -> diffuse);
                 glMaterialfv(GL_FRONT, GL_SPECULAR, face.material -> specular);
                 glMaterialf(GL_FRONT, GL_SHININESS, face.material -> shininess);
+                if(face.name == "Material_0.080") {
+                    GLfloat emissionColor[] = {1.0f, 1.0f, 0.8f, 1.0f};  // cor da "luz" da lua
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissionColor);
+                } else {
+                    GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};     // desativa emissão para os outros
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, noEmission);
+                }
             } else {
                 glMaterialfv(GL_FRONT, GL_AMBIENT, defaultMaterial.ambient);
                 glMaterialfv(GL_FRONT, GL_DIFFUSE, defaultMaterial.diffuse);
@@ -216,7 +223,7 @@ void display() {
     if (inside) {
         glCallList(displayListInside);
         
-        // Desenha os 3 fantasmas
+    
         for(int i = 0; i < qtdGhosts; i++) {
             Ghost& ghost = ghosts[i];
             
@@ -275,7 +282,10 @@ void display() {
     } else {
         glCallList(displayListOutside);
     }
-    
+
+    cout << "Tá vivo? " << playerIsAlive << endl;
+    cout << "Fantasmas " << aliveGhosts << endl;
+
     lighting();
     glutSwapBuffers();
 }

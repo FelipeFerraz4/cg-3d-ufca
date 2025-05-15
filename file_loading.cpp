@@ -58,6 +58,7 @@ bool loadOBJ(const char* path, bool isInside) {
 
     string line;
     string mtlPath;
+    string nameCurrent = "";
     
     while (getline(file, line)) {
         istringstream iss(line);
@@ -103,6 +104,7 @@ bool loadOBJ(const char* path, bool isInside) {
         else if (type == "usemtl") {
             string matName;
             iss >> matName;
+            nameCurrent = matName;
             if(isInside) {
                 if (materialsInside.find(matName) != materialsInside.end()) {
                     currentMaterial = &materialsInside[matName];

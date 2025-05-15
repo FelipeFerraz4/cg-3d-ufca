@@ -42,6 +42,8 @@ int gambiarra = initGhost();
 vector<Vertex> ghostVertices;
 vector<Face> ghostFaces;
 float scaleGhost = 10.0f;
-int aliveGhosts = 40;
-int qtdGhosts = 40;
-Ghost ghosts[40];
+int aliveGhosts = 100;
+int qtdGhosts = 100;
+Ghost ghosts[100];
+
+bool playerIsAlive = true;

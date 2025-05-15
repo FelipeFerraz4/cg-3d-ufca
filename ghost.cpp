@@ -109,3 +109,14 @@ void drawGhost(Ghost &ghost) {
     
     glPopMatrix();
 }
+
+void isPlayerHitByGhost() {
+    for(int i = 0; i < qtdGhosts; i++) {
+        if(ghosts[i].alive) {
+            if(sqrt(ghosts[i].x * ghosts[i].x  + ghosts[i].y * ghosts[i].y + ghosts[i].z * ghosts[i].z) < 1) {
+                playerIsAlive = false;
+                break;
+            }
+        }
+    }
+}
