@@ -1,5 +1,45 @@
 #include "structures.h"
 
+// Variável para a textura de fundo
+GLuint backgroundTexture;
+
+// Função para carregar texturas
+void loadTextures() {
+    // Carrega apenas a imagem de fundo
+    backgroundTexture = SOIL_load_OGL_texture(
+        "imagens/background.png",
+        SOIL_LOAD_AUTO,
+        SOIL_CREATE_NEW_ID,
+        SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_MULTIPLY_ALPHA
+    );
+    
+    if(!backgroundTexture) {
+        printf("Erro ao carregar textura: '%s'\n", SOIL_last_result());
+    }
+    
+    // Configura parâmetros da textura
+    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
+// Função para desenhar o fundo
+void drawBackground() {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+    
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(1460, 0.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(1460, 720);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 720);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
+}
+
 bool isGhostHitByLight(const Ghost& ghost, float lightX, float lightY, float lightZ, float dirX, float dirY, float dirZ, float cutoffAngle, float maxDistance) // <- novo parâmetro
 {
     if(!ghost.alive)
@@ -197,6 +237,7 @@ void init() {
     centerY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 
     glutWarpPointer(centerX, centerY);
+    loadTextures();
 }
 
 void updateLightPosition() {
@@ -211,94 +252,109 @@ void updateLightPosition() {
 
 void display() {
     
-    updateLightPosition();
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
-
-    if(!displayListGenerated) {
-        generateDisplayLists();
-    }
+    if(aliveGhosts == 0){
+        glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
     
-    if (inside) {
-        glCallList(displayListInside);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(1460, 0.0f);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(1460, 720);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 720);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
+    }else{
+        updateLightPosition();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
+
+        if(!displayListGenerated) {
+            generateDisplayLists();
+        }
         
-    
-        for(int i = 0; i < qtdGhosts; i++) {
-            Ghost& ghost = ghosts[i];
+        if (inside) {
+            glCallList(displayListInside);
             
-            if(ghost.alive) {
-                glPushMatrix();
-                glTranslatef(ghost.x, ghost.y, ghost.z);
-                glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
+        
+            for(int i = 0; i < qtdGhosts; i++) {
+                Ghost& ghost = ghosts[i];
                 
-                // Configura material
-                glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
-                glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
-                glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
-                glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
-                
-                // Desenha o modelo
-                glBegin(GL_TRIANGLES);
-                for(const auto& face : ghostFaces) {
-                    const Vertex& v1 = ghostVertices[face.v1];
-                    const Vertex& v2 = ghostVertices[face.v2];
-                    const Vertex& v3 = ghostVertices[face.v3];
+                if(ghost.alive) {
+                    glPushMatrix();
+                    glTranslatef(ghost.x, ghost.y, ghost.z);
+                    glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
                     
-                    // Calcula normal
-                    float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
-                    float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
-                    float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
-                    float len = sqrt(nx*nx + ny*ny + nz*nz);
+                    // Configura material
+                    glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
+                    glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
+                    glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
+                    glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
                     
-                    if(len > 0) { nx /= len; ny /= len; nz /= len; }
-                    
-                    glNormal3f(nx, ny, nz);
-                    glVertex3f(v1.x, v1.y, v1.z);
-                    glVertex3f(v2.x, v2.y, v2.z);
-                    glVertex3f(v3.x, v3.y, v3.z);
+                    // Desenha o modelo
+                    glBegin(GL_TRIANGLES);
+                    for(const auto& face : ghostFaces) {
+                        const Vertex& v1 = ghostVertices[face.v1];
+                        const Vertex& v2 = ghostVertices[face.v2];
+                        const Vertex& v3 = ghostVertices[face.v3];
+                        
+                        // Calcula normal
+                        float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
+                        float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
+                        float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
+                        float len = sqrt(nx*nx + ny*ny + nz*nz);
+                        
+                        if(len > 0) { nx /= len; ny /= len; nz /= len; }
+                        
+                        glNormal3f(nx, ny, nz);
+                        glVertex3f(v1.x, v1.y, v1.z);
+                        glVertex3f(v2.x, v2.y, v2.z);
+                        glVertex3f(v3.x, v3.y, v3.z);
+                    }
+                    glEnd();
+                    glPopMatrix();
                 }
-                glEnd();
-                glPopMatrix();
             }
+
+            GLfloat lightX = camX;
+            GLfloat lightY = camY + 1.0f;
+            GLfloat lightZ = camZ;
+
+            for (int i = 0; i < qtdGhosts; i++) {
+                Ghost& ghost = ghosts[i];
+                
+                bool hit = isGhostHitByLight(ghost, lightX, lightY, lightZ, dirX, dirY, dirZ, 30.0f, 5.0f); // Ângulo e distância máximos
+
+                if(hit) {
+                    ghosts[i].alive = false;
+                    aliveGhosts--;
+                    printf("Fantasma %d foi atingido pela luz!\n", i+1);
+                    printf("Fantasmas vivos: %d\n", aliveGhosts);
+                }
+            }
+        } else {
+            glCallList(displayListOutside);
         }
 
-        GLfloat lightX = camX;
-        GLfloat lightY = camY + 1.0f;
-        GLfloat lightZ = camZ;
+        cout << "Tá vivo? " << playerIsAlive << endl;
+        cout << "Fantasmas " << aliveGhosts << endl;
 
-        for (int i = 0; i < qtdGhosts; i++) {
-            Ghost& ghost = ghosts[i];
-            
-            bool hit = isGhostHitByLight(ghost, lightX, lightY, lightZ, dirX, dirY, dirZ, 30.0f, 5.0f); // Ângulo e distância máximos
-
-            if(hit) {
-                ghosts[i].alive = false;
-                aliveGhosts--;
-                printf("Fantasma %d foi atingido pela luz!\n", i+1);
-                printf("Fantasmas vivos: %d\n", aliveGhosts);
-            }
+        if(aliveGhosts == 0) {
+            inside = false;
+            camX = -16.093f;
+            camY = 1.40001f;
+            camZ = -0.982863f;
+            dirX = 0.997792f; dirY = -0.0262446f;
+            dirZ = 0.0610081f;
+            aliveGhosts--;
         }
-    } else {
-        glCallList(displayListOutside);
+
+        lighting();
+        glutSwapBuffers();
     }
-
-    cout << "Tá vivo? " << playerIsAlive << endl;
-    cout << "Fantasmas " << aliveGhosts << endl;
-
-    if(aliveGhosts == 0) {
-        inside = false;
-        camX = -16.093f;
-        camY = 1.40001f;
-        camZ = -0.982863f;
-        dirX = 0.997792f; dirY = -0.0262446f;
-        dirZ = 0.0610081f;
-        aliveGhosts--;
-    }
-
-    lighting();
-    glutSwapBuffers();
+    
 }
 
 void reshape(int width, int height) {

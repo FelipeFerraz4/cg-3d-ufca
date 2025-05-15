@@ -3,15 +3,7 @@
 #include <string>
 #include <vector>
 
-// Definições de estado do jogo
-enum GameState { MENU, PLAYING, OPTIONS, EXITING };
-GameState currentState = MENU;
-
-// Variáveis para controle do menu
-int selectedOption = 0;
-std::vector<std::string> menuOptions = {"o", "o", "o"};
-
-// Configurações da janela
+// Variáveis para a janela
 int windowWidth = 800;
 int windowHeight = 600;
 
@@ -20,7 +12,7 @@ GLuint backgroundTexture;
 
 // Função para carregar texturas
 void loadTextures() {
-    // Carrega a imagem de fundo (substitua pelo caminho correto da sua imagem)
+    // Carrega apenas a imagem de fundo
     backgroundTexture = SOIL_load_OGL_texture(
         "imagens/background.png",
         SOIL_LOAD_AUTO,
@@ -55,14 +47,7 @@ void drawBackground() {
     glDisable(GL_TEXTURE_2D);
 }
 
-void drawText(float x, float y, const std::string &text) {
-    glRasterPos2f(x, y);
-    for (char c : text) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
-    }
-}
-
-void drawMenu() {
+void display() {
     // Configuração da projeção ortogonal para desenho 2D
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -74,87 +59,11 @@ void drawMenu() {
     // Limpa o buffer de cores
     glClear(GL_COLOR_BUFFER_BIT);
     
-    // Desenha o fundo primeiro
+    // Desenha apenas o fundo
     drawBackground();
-
-
-    
-    // Habilita blending para texto com transparência
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    // Desenha o título do jogo
-    glColor4f(1.0f, 1.0f, 1.0f, 0.9f); // Branco com transparência
-    
-    // Desenha as opções do menu
-    for (int i = 0; i < menuOptions.size(); ++i) {
-        if (i == selectedOption) {
-            glColor4f(1.0f, 0.0f, 0.0f, 0.9f); // Vermelho para opção selecionada
-        } else {
-            glColor4f(1.0f, 1.0f, 1.0f, 0.7f); // Branco para outras opções
-        }
-        
-        drawText(windowWidth/2 - 100, 285 + i * 90, menuOptions[i]);
-    }
-    
-    glDisable(GL_BLEND);
     
     // Troca os buffers
     glutSwapBuffers();
-}
-
-void keyboard(unsigned char key, int x, int y) {
-    switch (key) {
-        case 27: // ESC
-            currentState = EXITING;
-            break;
-        case 13: // Enter
-            if (currentState == MENU) {
-                switch (selectedOption) {
-                    case 0: // Iniciar Jogo
-                        currentState = PLAYING;
-                        break;
-                    case 1: // Opções
-                        currentState = OPTIONS;
-                        break;
-                    case 2: // Sair
-                        currentState = EXITING;
-                        break;
-                }
-            }
-            break;
-    }
-}
-
-void specialKeys(int key, int x, int y) {
-    if (currentState == MENU) {
-        switch (key) {
-            case GLUT_KEY_UP:
-                selectedOption = (selectedOption - 1 + menuOptions.size()) % menuOptions.size();
-                break;
-            case GLUT_KEY_DOWN:
-                selectedOption = (selectedOption + 1) % menuOptions.size();
-                break;
-        }
-    }
-    glutPostRedisplay();
-}
-
-void display() {
-    switch (currentState) {
-        case MENU:
-            drawMenu();
-            break;
-        case PLAYING:
-            // Lógica do jogo aqui
-            break;
-        case OPTIONS:
-            // Tela de opções aqui
-            break;
-        case EXITING:
-            exit(0);
-            break;
-    }
 }
 
 int main(int argc, char** argv) {
@@ -162,15 +71,13 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(windowWidth, windowHeight);
-    glutCreateWindow("Meu Jogo");
+    glutCreateWindow("Imagem de Fundo");
     
-    // Carrega as texturas
+    // Carrega apenas a textura de fundo
     loadTextures();
     
-    // Registra callbacks
+    // Registra callback de display
     glutDisplayFunc(display);
-    glutKeyboardFunc(keyboard);
-    glutSpecialFunc(specialKeys);
     
     // Cor de fundo (será coberta pela textura)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
