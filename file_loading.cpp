@@ -85,6 +85,7 @@ bool loadOBJ(const char* path, bool isInside) {
             
             f.v1--; f.v2--; f.v3--;
             f.material = currentMaterial;
+            f.name = nameCurrent;
 
             if(isInside)
                 facesInside.push_back(f);
