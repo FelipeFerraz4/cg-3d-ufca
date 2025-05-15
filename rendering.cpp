@@ -1,11 +1,8 @@
 #include "structures.h"
 
-// Variável para a textura de fundo
 GLuint backgroundTexture;
 
-// Função para carregar texturas
 void loadTextures() {
-    // Carrega apenas a imagem de fundo
     backgroundTexture = SOIL_load_OGL_texture(
         "imagens/background.png",
         SOIL_LOAD_AUTO,
@@ -17,7 +14,6 @@ void loadTextures() {
         printf("Erro ao carregar textura: '%s'\n", SOIL_last_result());
     }
     
-    // Configura parâmetros da textura
     glBindTexture(GL_TEXTURE_2D, backgroundTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -25,7 +21,6 @@ void loadTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-// Função para desenhar o fundo
 void drawBackground() {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, backgroundTexture);
@@ -44,36 +39,29 @@ bool isGhostHitByLight(const Ghost& ghost, float lightX, float lightY, float lig
 {
     if(!ghost.alive)
         return false;
-    // Vetor da luz até o fantasma
+
     float dx = ghost.x - lightX;
     float dy = ghost.y - lightY;
     float dz = ghost.z - lightZ;
 
-    // Distância entre luz e fantasma
     float distance = sqrt(dx*dx + dy*dy + dz*dz);
 
-    // Verifica se o fantasma está dentro do alcance da luz
     if (distance > maxDistance) return false;
 
-    // Normaliza o vetor de direção da luz
     float lightDirLen = sqrt(dirX*dirX + dirY*dirY + dirZ*dirZ);
     float lx = dirX / lightDirLen;
     float ly = dirY / lightDirLen;
     float lz = dirZ / lightDirLen;
 
-    // Normaliza o vetor até o fantasma
-    float ghostDirLen = distance; // já calculado
+    float ghostDirLen = distance;
     float gx = dx / ghostDirLen;
     float gy = dy / ghostDirLen;
     float gz = dz / ghostDirLen;
 
-    // Produto escalar entre os vetores
     float dot = lx * gx + ly * gy + lz * gz;
 
-    // Ângulo entre direção da luz e o vetor até o fantasma
     float angle = acos(dot) * 180.0f / M_PI;
 
-    // Verifica se o ângulo está dentro do cone da lanterna
     return angle < cutoffAngle;
 }
 
@@ -92,15 +80,13 @@ void lighting() {
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
 
-    // SpotLight configs
-    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0f); // Ângulo da lanterna
-    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 15.0f); // Concentração da luz
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0f); 
+    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 15.0f); 
 
     glEnable(GL_LIGHTING);
 
     GLfloat lightDiffuse1[] = {0.7f, 0.7f, 0.7f, 1.0f};
     GLfloat lightSpecular1[] = {0.2f, 0.2f, 0.2f, 1.0f};
-    // GLfloat lightPosition[] = {0.0f, 5.0f, 5.0f, 1.0f};
     GLfloat lightPosition[] = {-31.3182f, 47.2501f, 11.8853f, 1.0f};
 
     glLightfv(GL_LIGHT1, GL_AMBIENT, black);
@@ -108,12 +94,23 @@ void lighting() {
     glLightfv(GL_LIGHT1, GL_SPECULAR, lightSpecular);
     glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);
 
+    GLfloat lightDiffuse2[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    GLfloat lightSpecular2[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat lightPosition2[] = {0.0f, 5.0f, 5.0f, 1.0f};
+
+    glLightfv(GL_LIGHT2, GL_AMBIENT, black);
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT2, GL_SPECULAR, lightSpecular);
+    glLightfv(GL_LIGHT2, GL_POSITION, lightPosition);
+
     if(inside) {
         glEnable(GL_LIGHT0);
         glDisable(GL_LIGHT1);
+        //glEnable(GL_LIGHT2);
     } else {
         glDisable(GL_LIGHT0);
         glEnable(GL_LIGHT1);
+        //glDisable(GL_LIGHT2);
     }
 }
 
@@ -121,7 +118,6 @@ void generateDisplayLists() {
     if(displayListGenerated)
         return;
     
-    // Gera display list para cena interna
     displayListInside = glGenLists(1);
     glNewList(displayListInside, GL_COMPILE);
     
@@ -157,7 +153,7 @@ void generateDisplayLists() {
         
         float len = sqrt(nx*nx + ny*ny + nz*nz);
         
-        if (len > 0)
+        if(len > 0)
             nx /= len; ny /= len; nz /= len;
 
         glNormal3f(nx, ny, nz);
@@ -168,7 +164,6 @@ void generateDisplayLists() {
     glEnd();
     glEndList();
     
-    // Gera display list para cena externa
     displayListOutside = glGenLists(1);
     glNewList(displayListOutside, GL_COMPILE);
     
@@ -187,10 +182,10 @@ void generateDisplayLists() {
                 glMaterialfv(GL_FRONT, GL_SPECULAR, face.material -> specular);
                 glMaterialf(GL_FRONT, GL_SHININESS, face.material -> shininess);
                 if(face.name == "Material_0.080") {
-                    GLfloat emissionColor[] = {1.0f, 1.0f, 0.8f, 1.0f};  // cor da "luz" da lua
+                    GLfloat emissionColor[] = {1.0f, 1.0f, 0.8f, 1.0f};  
                     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissionColor);
                 } else {
-                    GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};     // desativa emissão para os outros
+                    GLfloat noEmission[] = {0.0f, 0.0f, 0.0f, 1.0f};   
                     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, noEmission);
                 }
             } else {
@@ -211,7 +206,7 @@ void generateDisplayLists() {
         
         float len = sqrt(nx*nx + ny*ny + nz*nz);
 
-        if (len > 0)
+        if(len > 0)
             nx /= len; ny /= len; nz /= len;
 
         glNormal3f(nx, ny, nz);
@@ -225,7 +220,6 @@ void generateDisplayLists() {
     displayListGenerated = true;
 }
 
-// Inicialização do OpenGL
 void init() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     loadTextures();
@@ -256,11 +250,9 @@ void init() {
 }
 
 void updateLightPosition() {
-    // Posição da luz (acima e um pouco à frente da câmera)
     GLfloat lightPosition[] = {camX, camY + 1.0f, camZ, 1.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-    // Direção da luz baseada no vetor de direção da câmera
     GLfloat lightDirection[] = {dirX, dirY, dirZ};
     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightDirection);
 }
@@ -268,27 +260,25 @@ void updateLightPosition() {
 void display() {
     
     if(aliveGhosts <= 0){
-    // Configuração exclusiva para 2D
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-    glDisable(GL_LIGHT1);
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, 1460, 720, 0);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    // Renderização do background
-    glEnable(GL_TEXTURE_2D);
-    drawBackground();
-    glDisable(GL_TEXTURE_2D);
-    
-    glutSwapBuffers();
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHT1);
+        
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0, 1460, 720, 0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glEnable(GL_TEXTURE_2D);
+        drawBackground();
+        glDisable(GL_TEXTURE_2D);
+        
+        glutSwapBuffers();
     }else{
         updateLightPosition();
 
@@ -300,7 +290,7 @@ void display() {
             generateDisplayLists();
         }
         
-        if (inside) {
+        if(inside) {
             glCallList(displayListInside);
             
         
@@ -310,28 +300,29 @@ void display() {
                 if(ghost.alive) {
                     glPushMatrix();
                     glTranslatef(ghost.x, ghost.y, ghost.z);
-                    glScalef(scaleGhost, scaleGhost, scaleGhost); // Escala fixa para todos
-                    
-                    // Configura material
+                    glScalef(scaleGhost, scaleGhost, scaleGhost);
+        
                     glMaterialfv(GL_FRONT, GL_AMBIENT, ghost.matAmbient);
                     glMaterialfv(GL_FRONT, GL_DIFFUSE, ghost.matDiffuse);
                     glMaterialfv(GL_FRONT, GL_SPECULAR, ghost.matSpecular);
                     glMaterialf(GL_FRONT, GL_SHININESS, ghost.matShininess);
                     
-                    // Desenha o modelo
                     glBegin(GL_TRIANGLES);
                     for(const auto& face : ghostFaces) {
                         const Vertex& v1 = ghostVertices[face.v1];
                         const Vertex& v2 = ghostVertices[face.v2];
                         const Vertex& v3 = ghostVertices[face.v3];
                         
-                        // Calcula normal
                         float nx = (v2.y-v1.y)*(v3.z-v1.z) - (v2.z-v1.z)*(v3.y-v1.y);
                         float ny = (v2.z-v1.z)*(v3.x-v1.x) - (v2.x-v1.x)*(v3.z-v1.z);
                         float nz = (v2.x-v1.x)*(v3.y-v1.y) - (v2.y-v1.y)*(v3.x-v1.x);
                         float len = sqrt(nx*nx + ny*ny + nz*nz);
                         
-                        if(len > 0) { nx /= len; ny /= len; nz /= len; }
+                        if(len > 0) {
+                            nx /= len;
+                            ny /= len;
+                            nz /= len;
+                        }
                         
                         glNormal3f(nx, ny, nz);
                         glVertex3f(v1.x, v1.y, v1.z);
@@ -347,10 +338,10 @@ void display() {
             GLfloat lightY = camY + 1.0f;
             GLfloat lightZ = camZ;
 
-            for (int i = 0; i < qtdGhosts; i++) {
+            for(int i = 0; i < qtdGhosts; i++) {
                 Ghost& ghost = ghosts[i];
                 
-                bool hit = isGhostHitByLight(ghost, lightX, lightY, lightZ, dirX, dirY, dirZ, 30.0f, 5.0f); // Ângulo e distância máximos
+                bool hit = isGhostHitByLight(ghost, lightX, lightY, lightZ, dirX, dirY, dirZ, 30.0f, 5.0f);
 
                 if(hit) {
                     ghosts[i].alive = false;
@@ -399,7 +390,6 @@ void reshape(int width, int height) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-// Limpeza de recursos
 void cleanup() {
     if(displayListGenerated) {
         glDeleteLists(displayListInside, 1);

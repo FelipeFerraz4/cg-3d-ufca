@@ -1,9 +1,8 @@
 #include "structures.h"
 
-// Função para carregar MTL
 bool loadMTL(const char* path, bool isInside) {
     ifstream file(path);
-    if (!file.is_open()) {
+    if(!file.is_open()) {
         cerr << "Erro ao abrir o arquivo MTL: " << path << endl;
         return false;
     }
@@ -11,12 +10,12 @@ bool loadMTL(const char* path, bool isInside) {
     string line;
     Material* currentMat = nullptr;
     
-    while (getline(file, line)) {
+    while(getline(file, line)) {
         istringstream iss(line);
         string type;
         iss >> type;
 
-        if (type == "newmtl") {
+        if(type == "newmtl") {
             string name;
             iss >> name;
 
@@ -29,16 +28,16 @@ bool loadMTL(const char* path, bool isInside) {
             }
             currentMat -> name = name;
         }
-        else if (type == "Ka" && currentMat) {
+        else if(type == "Ka" && currentMat) {
             iss >> currentMat -> ambient[0] >> currentMat -> ambient[1] >> currentMat -> ambient[2];
         }
-        else if (type == "Kd" && currentMat) {
+        else if(type == "Kd" && currentMat) {
             iss >> currentMat -> diffuse[0] >> currentMat -> diffuse[1] >> currentMat -> diffuse[2];
         }
-        else if (type == "Ks" && currentMat) {
+        else if(type == "Ks" && currentMat) {
             iss >> currentMat -> specular[0] >> currentMat -> specular[1] >> currentMat -> specular[2];
         }
-        else if (type == "Ns" && currentMat) {
+        else if(type == "Ns" && currentMat) {
             iss >> currentMat -> shininess;
         }
     }
@@ -48,10 +47,9 @@ bool loadMTL(const char* path, bool isInside) {
     return true;
 }
 
-// Função para carregar OBJ com otimizações
 bool loadOBJ(const char* path, bool isInside) {
     ifstream file(path);
-    if (!file.is_open()) {
+    if(!file.is_open()) {
         cerr << "Erro ao abrir o arquivo: " << path << endl;
         return false;
     }
@@ -60,12 +58,12 @@ bool loadOBJ(const char* path, bool isInside) {
     string mtlPath;
     string nameCurrent = "";
     
-    while (getline(file, line)) {
+    while(getline(file, line)) {
         istringstream iss(line);
         string type;
         iss >> type;
 
-        if (type == "v") {
+        if(type == "v") {
             Vertex v;
             iss >> v.x >> v.y >> v.z;
 
@@ -74,7 +72,7 @@ bool loadOBJ(const char* path, bool isInside) {
             else
                 verticesOutside.push_back(v);
         }
-        else if (type == "f") {
+        else if(type == "f") {
             Face f;
             string v1, v2, v3;
             iss >> v1 >> v2 >> v3;
@@ -92,22 +90,22 @@ bool loadOBJ(const char* path, bool isInside) {
             else
                 facesOutside.push_back(f);
         }
-        else if (type == "mtllib") {
+        else if(type == "mtllib") {
             iss >> mtlPath;
             size_t lastSlash = string(path).find_last_of("/\\");
-            if (lastSlash != string::npos) {
+            if(lastSlash != string::npos) {
                 mtlPath = string(path).substr(0, lastSlash+1) + mtlPath;
             }
-            if (!loadMTL(mtlPath.c_str(), isInside)) {
+            if(!loadMTL(mtlPath.c_str(), isInside)) {
                 cerr << "Aviso: Não foi possível carregar o arquivo MTL: " << mtlPath << endl;
             }
         }
-        else if (type == "usemtl") {
+        else if(type == "usemtl") {
             string matName;
             iss >> matName;
             nameCurrent = matName;
             if(isInside) {
-                if (materialsInside.find(matName) != materialsInside.end()) {
+                if(materialsInside.find(matName) != materialsInside.end()) {
                     currentMaterial = &materialsInside[matName];
                 } else {
                     cerr << "Aviso: Material inside '" << matName << "' não encontrado" << endl;
@@ -129,9 +127,8 @@ bool loadOBJ(const char* path, bool isInside) {
     // Cria malha simplificada para colisão (1/10 das faces)
     if(isInside) {
         collisionMeshInside.vertices = verticesInside;
-        for(size_t i = 0; i < facesInside.size(); i += 10) {
+        for(size_t i = 0; i < facesInside.size(); i += 10)
             collisionMeshInside.faces.push_back(facesInside[i]);
-        }
         
         cout << "Modelo interno carregado com sucesso!" << endl;
         cout << "Vertices: " << verticesInside.size() << endl;
@@ -139,9 +136,8 @@ bool loadOBJ(const char* path, bool isInside) {
         cout << "Faces de colisão: " << collisionMeshInside.faces.size() << endl;
     } else {
         collisionMeshOutside.vertices = verticesOutside;
-        for(size_t i = 0; i < facesOutside.size(); i += 10) {
+        for(size_t i = 0; i < facesOutside.size(); i += 10)
             collisionMeshOutside.faces.push_back(facesOutside[i]);
-        }
         
         cout << "Modelo externo carregado com sucesso!" << endl;
         cout << "Vertices: " << verticesOutside.size() << endl;
@@ -154,7 +150,7 @@ bool loadOBJ(const char* path, bool isInside) {
 
 bool loadGhost(const char* path) {
     ifstream file(path);
-    if (!file.is_open()) {
+    if(!file.is_open()) {
         cerr << "Erro ao abrir o arquivo: " << path << endl;
         return false;
     }
@@ -168,17 +164,16 @@ bool loadGhost(const char* path) {
         string type;
         iss >> type;
 
-        if (type == "v") {
+        if(type == "v") {
             Vertex v;
             iss >> v.x >> v.y >> v.z;
             ghostVertices.push_back(v);
         }
-        else if (type == "f") {
+        else if(type == "f") {
             Face f;
             string v1, v2, v3;
             iss >> v1 >> v2 >> v3;
             
-            // Remove texturas/normais se existirem
             v1 = v1.substr(0, v1.find('/'));
             v2 = v2.substr(0, v2.find('/'));
             v3 = v3.substr(0, v3.find('/'));
@@ -186,7 +181,7 @@ bool loadGhost(const char* path) {
             f.v1 = stoi(v1) - 1;
             f.v2 = stoi(v2) - 1;
             f.v3 = stoi(v3) - 1;
-            f.material = &defaultMaterial;  // Usa material padrão
+            f.material = &defaultMaterial;
 
             ghostFaces.push_back(f);
         }

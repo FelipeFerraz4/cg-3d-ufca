@@ -7,7 +7,7 @@ void passiveMotion(int x, int y) {
     int deltaX = x - centerX;
     int deltaY = y - centerY;
 
-    if (deltaX != 0 || deltaY != 0) {
+    if(deltaX != 0 || deltaY != 0) {
         targetAngleY += deltaX * sensitivity;
         targetAngleX -= deltaY * sensitivity;
         targetAngleX = fmax(-89.0f, fmin(89.0f, targetAngleX));
@@ -84,32 +84,31 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 void specialKeyboard(int key, int x, int y) {
-    if (key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
+    if(key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
         shiftPressed = true;
     }
     glutPostRedisplay();
 }
 
 void specialKeyboardUp(int key, int x, int y) {
-    if (key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
+    if(key == GLUT_KEY_SHIFT_L || key == GLUT_KEY_SHIFT_R) {
         shiftPressed = false;
     }
 }
 
 void update(int value) {
-    if (shiftPressed) {
+    if(shiftPressed) {
         float oldY = camY;
         float newY = camY - 0.05f;
         
-        if (!checkCollision(camX, newY, camZ)) {
+        if(!checkCollision(camX, newY, camZ)) {
             camY = newY;
         } else {
             camY = oldY;
         }
     }
     
-    // Atualiza a posição da esfera apenas na cena interna
-    if (inside) {
+    if(inside) {
         for(int i = 0; i < qtdGhosts; i++)
             updateGhost(ghosts[i]);
     }

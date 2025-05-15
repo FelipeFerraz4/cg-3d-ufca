@@ -14,7 +14,6 @@
 
 using namespace std;
 
-// Declarações externas
 extern float camX, camY, camZ;
 extern float dirX, dirY, dirZ;
 extern float angleX, angleY;
@@ -24,12 +23,10 @@ extern float smoothFactor;
 extern bool shiftPressed;
 extern bool inside;
 
-// Constantes
 const float PLAYER_RADIUS = 0.3f;
 const float PLAYER_HEIGHT = 1.0f;
 const float EYE_HEIGHT = 0.8f;
 
-// Estruturas
 struct Vertex {
     float x, y, z;
 };
@@ -66,7 +63,6 @@ struct Ghost {
     bool alive;
 };
 
-// Declaração da variável global
 extern Ghost ghost;
 extern vector<Vertex> verticesInside;
 extern vector<Face> facesInside;
@@ -81,7 +77,7 @@ extern GLuint displayListOutside;
 extern bool displayListGenerated;
 extern CollisionMesh collisionMeshInside;
 extern CollisionMesh collisionMeshOutside;
-extern Ghost ghosts[40];
+extern Ghost ghosts[20];
 extern vector<Vertex> ghostVertices;
 extern vector<Face> ghostFaces;
 extern float scaleGhost;
@@ -90,7 +86,6 @@ extern int gambiarra;
 extern int qtdGhosts;
 extern bool playerIsAlive;
 
-// Declarações de funções
 void normalizeHorizontal(float& x, float& z);
 void updateCamera();
 float clamp(float val, float minVal, float maxVal);

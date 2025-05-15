@@ -3,9 +3,9 @@
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutCreateWindow("Jogo Otimizado");
-    glutInitWindowSize(1460, 720);
+    glutInitWindowSize(1420, 720);
     glutInitWindowPosition(200, 0);
+    glutCreateWindow("Jogo");
 
     if(!loadOBJ("objetos_3d/Interno.obj", true))
         return 1;

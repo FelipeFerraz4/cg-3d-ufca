@@ -1,6 +1,5 @@
 #include "structures.h"
 
-// Definições das variáveis globais
 float camX = -16.093f, camY = 1.40001f, camZ = -0.982863f;
 float dirX = 0.997792f, dirY = -0.0262446f, dirZ = 0.0610081f;
 float angleX = 0.0f, angleY = 45.0f;
@@ -28,7 +27,6 @@ bool displayListGenerated = false;
 CollisionMesh collisionMeshInside;
 CollisionMesh collisionMeshOutside;
 
-// Implementação do construtor de Material
 Material::Material() : shininess(0.0f) {
     for(int i = 0; i < 3; i++) {
         ambient[i] = 0.2f;
@@ -42,8 +40,8 @@ int gambiarra = initGhost();
 vector<Vertex> ghostVertices;
 vector<Face> ghostFaces;
 float scaleGhost = 10.0f;
-int aliveGhosts = 40;
-int qtdGhosts = 40;
-Ghost ghosts[40];
+int aliveGhosts = 20;
+int qtdGhosts = 20;
+Ghost ghosts[20];
 
 bool playerIsAlive = true;
